@@ -2,6 +2,8 @@ from fastapi import FastAPI
 
 from app.database import Base, engine
 
+from app.routes import router
+
 import app.models
 
 Base.metadata.create_all(bind=engine)
@@ -24,3 +26,5 @@ def root():
     return {
         "message": "CloudOps API is running"
     }
+
+app.include_router(router)
