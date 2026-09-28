@@ -1,17 +1,48 @@
 services:
+
   mysql:
     image: mysql:8.0
     container_name: cloudops-mysql
     restart: unless-stopped
+
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: cloudops
       MYSQL_USER: cloudops
       MYSQL_PASSWORD: cloudopspassword
+
     ports:
       - "3306:3306"
+
     volumes:
       - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ucloudops", "-pcloudopspassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+
+    container_name: cloudops-api
+
+    restart: unless-stopped
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      DATABASE_URL: mysql+pymysql://cloudops:cloudopspassword@mysql:3306/cloudops
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
 
 volumes:
   mysql_data:
