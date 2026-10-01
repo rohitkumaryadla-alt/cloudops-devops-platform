@@ -17,6 +17,26 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+
+      mysql:
+        image: mysql:8.0
+
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: cloudops
+          MYSQL_USER: cloudops
+          MYSQL_PASSWORD: cloudopspassword
+
+        ports:
+          - 3306:3306
+
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -ucloudops -pcloudopspassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
 
       - name: Checkout repository
@@ -33,5 +53,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run tests
+        env:
+          DATABASE_URL: mysql+pymysql://cloudops:cloudopspassword@127.0.0.1:3306/cloudops
         run: |
           python -m pytest -v
